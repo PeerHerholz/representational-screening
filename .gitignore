@@ -39,6 +39,9 @@ docs/source/generated/
 .DS_Store
 Thumbs.db
 
+# Container images
+*.sif
+
 # Model checkpoints and large arrays
 *.pt
 *.pth
