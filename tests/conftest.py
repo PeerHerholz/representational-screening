@@ -130,3 +130,22 @@ def rdm_pair():
         np.fill_diagonal(matrix, 0.0)
         out.append(matrix)
     return tuple(out)
+
+
+@pytest.fixture
+def screening_result(activation_tree):
+    """Run the screening pipeline over the on-disk fixture tree."""
+    from repscreen.config import (
+        ActivationConfig,
+        ScreeningConfig,
+        SelectionConfig,
+    )
+    from repscreen.screening.pipeline import run_screening
+
+    config = ScreeningConfig(
+        activations=ActivationConfig(
+            activation_dir=activation_tree, models=MODELS
+        ),
+        selection=SelectionConfig(n_categories=3, n_exemplars=2),
+    )
+    return run_screening(config)
