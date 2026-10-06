@@ -12,7 +12,7 @@ def centering_mat(K):
     I = np.eye(n)
     H = I - unit / n
 
-    return np.dot(np.dot(H, K), H)  # HKH are the same with KH, KH is the first centering, H(KH) do the second time, results are the sme with one time centering
+    return np.dot(np.dot(H, K), H)  # HKH are the same with KH, KH is the first centering, H(KH) do the second time, results are the same with one time centering
     #return np.dot(H, K)  # KH
 
 def centering(K):

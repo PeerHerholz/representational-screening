@@ -199,7 +199,7 @@ def procrustes(X, Y, scaling=True, reflection='best'):
         # optimum scaling of Y
         b = traceTA * normX / normY
 
-        # standarised distance between X and b*Y*T + c
+        # standardised distance between X and b*Y*T + c
         d = 1 - traceTA**2
 
         # transformed coords

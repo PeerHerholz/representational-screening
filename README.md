@@ -1,6 +1,6 @@
 # A repository for the representational screening framework to stimuli curation
 
-This is a stand-alone repository to facilitate the use of our recently developped representational screening approach for curating stimuli.  
+This is a stand-alone repository to facilitate the use of our recently developed representational screening approach for curating stimuli.  
 The resulting stimuli help expose divergences between models, but also enable interpretable, and theory-driven behavioral and neuroimaging experiments.
 
 The approach is in two stages:
@@ -33,7 +33,7 @@ But the screening methods works for any dataset, as long as it can equally be di
 
 ### Activations
 
-Two sets of activations are required. Each are expected to be saved in data/ in a seperate directory, under the name of the corresponding model.  
+Two sets of activations are required. Each are expected to be saved in data/ in a separate directory, under the name of the corresponding model.  
 In the same directory need to be saved the images used when saving the activations, in order of presentation.
 
 ### Running the screening algorithm
@@ -44,7 +44,7 @@ Then run bash.py
 
 ### Running some analysis
 
-representational screening.py ouputs the final curated stimuli and the resulting 2 RDMs with their similarity.
+representational screening.py outputs the final curated stimuli and the resulting 2 RDMs with their similarity.
 To run further analysis, such as the kind found in the paper, we also provide the notebook analysis.ipynb
 
 The results used for presentation come from the comparison between a ResNet trained on places365 and a ResNet trained on ImageNet.

@@ -60,7 +60,7 @@ assert imagelists[models[0]] == imagelists[models[1]]
 imagelist = imagelists[models[0]] # since they are the same, only consider one list
 
 
-#### Normalize vectors to bias towards colinearity measuer
+#### Normalize vectors to bias towards colinearity measure
 print('Normalizing activations - make sure the activation arrays have the shape (nb_images, nb_activations)')
 for model in models:
     activations[model] = activations[model].reshape(activations[model].shape[0], activations[model].shape[1])
@@ -110,7 +110,7 @@ print('screening categories')
 
 nb_subcategories = opt.nb_subcategories
 
-#### Screen categories accoring to the categorical relational representations
+#### Screen categories according to the categorical relational representations
 cat_similarities = {}
 correlations = {}
 similarities = {}
@@ -134,7 +134,7 @@ score = x-y # maximizing compactness difference an minimizing correlation
 indexes_corr_compact = np.argsort(-score)
 cats_correlations_compact = np.array(listcat)[np.argsort(-score)]
 
-#### screen examplars
+#### screen exemplars
 print('Screening exemplars')
 catRDM1, catRDM2, RDM1, RDM2, sorted_indices_corr_compact = max_rsa.find_subsimilar_subset(cat_activations, models, indexes_corr_compact[:nb_subcategories],  images_per_subset = opt.nb_exemplars, nb_per_category = nb_per_cat)
 sim = rsa.Compute_sim_RDMs(RDM1, RDM2, metric = 'pearson')
