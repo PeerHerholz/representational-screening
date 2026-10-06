@@ -36,6 +36,64 @@ class ExemplarSelection:
     correlations: np.ndarray
 
 
+def _validate_exemplar_request(
+    category_indices, n_categories, n_exemplars, n_per_category
+):
+    """Raise when a curated set of this shape cannot be built."""
+    if category_indices.size == 0:
+        raise ValueError(
+            "Exemplar screening needs at least one category."
+        )
+    if n_exemplars > n_per_category:
+        raise ValueError(
+            f"n_exemplars ({n_exemplars}) exceeds the "
+            f"{n_per_category} exemplars each category holds."
+        )
+    if np.any(category_indices >= n_categories) or np.any(
+        category_indices < 0
+    ):
+        raise IndexError(
+            f"Category index out of range for {n_categories} "
+            f"categories: {category_indices.tolist()}."
+        )
+
+
+def _least_correlated_exemplars(
+    correlations, category_indices, n_exemplars, n_per_category
+):
+    """Pick the least correlated exemplars within each category.
+
+    Returns
+    -------
+    local : numpy.ndarray
+        Positions within the selected categories' own matrices.
+    global_ : numpy.ndarray
+        Positions in the full image list.
+    """
+    local, global_ = [], []
+    for position, category in enumerate(category_indices):
+        start = position * n_per_category
+        within = correlations[start:start + n_per_category]
+        kept = np.argsort(within)[:n_exemplars]
+        local.append(start + kept)
+        global_.append(category * n_per_category + kept)
+    return np.concatenate(local), np.concatenate(global_)
+
+
+def _category_rdms(
+    cat_activations, models, category_indices, dissimilarity_metric
+):
+    """Dissimilarity matrix per model over the selected categories."""
+    rdms = {}
+    for model in models:
+        subset = cat_activations[model][category_indices]
+        rdms[model] = compute_rdm(
+            subset.reshape(-1, subset.shape[-1]),
+            metric=dissimilarity_metric,
+        )
+    return rdms
+
+
 def screen_exemplars(
     cat_activations: Dict[str, np.ndarray],
     models: Tuple[str, str],
@@ -81,58 +139,32 @@ def screen_exemplars(
         If a category index lies outside the activations.
     """
     category_indices = np.asarray(category_indices, dtype=int)
-    if category_indices.size == 0:
-        raise ValueError(
-            "Exemplar screening needs at least one category."
-        )
-    if n_exemplars > n_per_category:
-        raise ValueError(
-            f"n_exemplars ({n_exemplars}) exceeds the "
-            f"{n_per_category} exemplars each category holds."
-        )
+    _validate_exemplar_request(
+        category_indices,
+        cat_activations[models[0]].shape[0],
+        n_exemplars,
+        n_per_category,
+    )
 
-    n_categories = cat_activations[models[0]].shape[0]
-    if np.any(category_indices >= n_categories) or np.any(
-        category_indices < 0
-    ):
-        raise IndexError(
-            f"Category index out of range for {n_categories} "
-            f"categories: {category_indices.tolist()}."
-        )
-
-    full_rdms = {}
-    for model in models:
-        subset = cat_activations[model][category_indices]
-        full_rdms[model] = compute_rdm(
-            subset.reshape(-1, subset.shape[-1]),
-            metric=dissimilarity_metric,
-        )
-
+    full_rdms = _category_rdms(
+        cat_activations, models, category_indices, dissimilarity_metric
+    )
     correlations = column_correlations(
         full_rdms[models[0]], full_rdms[models[1]]
     )
-
-    local_indices = []
-    global_indices = []
-    for position, category in enumerate(category_indices):
-        start = position * n_per_category
-        within = correlations[start:start + n_per_category]
-        kept = np.argsort(within)[:n_exemplars]
-        local_indices.append(start + kept)
-        global_indices.append(category * n_per_category + kept)
-
-    local_indices = np.concatenate(local_indices)
-    selected_rdms = {
-        model: full_rdms[model][
-            np.ix_(local_indices, local_indices)
-        ]
-        for model in models
-    }
+    local_indices, global_indices = _least_correlated_exemplars(
+        correlations, category_indices, n_exemplars, n_per_category
+    )
 
     return ExemplarSelection(
         full_rdms=full_rdms,
-        selected_rdms=selected_rdms,
-        global_indices=np.concatenate(global_indices),
+        selected_rdms={
+            model: full_rdms[model][
+                np.ix_(local_indices, local_indices)
+            ]
+            for model in models
+        },
+        global_indices=global_indices,
         local_indices=local_indices,
         correlations=correlations,
     )
