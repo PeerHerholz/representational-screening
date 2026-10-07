@@ -188,10 +188,13 @@ def test_lab_samples_lightness_is_in_range():
 
 
 def test_lab_samples_of_grey_has_no_chroma():
+    # A neutral sRGB grey carries no hue, but converting it against
+    # the D65 white point leaves a residual of a few thousandths of
+    # an a*/b* unit, so the tolerance is set above that.
     image = np.full((8, 8, 3), 128, dtype=np.uint8)
     _, chroma_a, chroma_b = lab_samples(image, n_samples=10)
-    assert np.allclose(chroma_a, 0.0, atol=1e-6)
-    assert np.allclose(chroma_b, 0.0, atol=1e-6)
+    assert np.allclose(chroma_a, 0.0, atol=0.01)
+    assert np.allclose(chroma_b, 0.0, atol=0.01)
 
 
 def test_lab_samples_is_reproducible():
