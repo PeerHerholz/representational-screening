@@ -15,7 +15,7 @@ neuroimaging experiment while still separating the models, which makes
 the comparison interpretable and theory-driven rather than a single
 aggregate similarity score.
 
-<img src="Methods_schematic.png" width="750" height="300">
+<img src="docs/source/_static/Methods_schematic.png" width="750" height="300">
 
 Collaborators: Leonard van Dyck, Alban Flachot (shared first
 authorship) and Katharina Dobs.
@@ -120,7 +120,7 @@ The figure below comes from screening a ResNet trained on Places365
 against a ResNet trained on ImageNet, which is also the comparison the
 paper reports.
 
-<img src="Results_1.png" width="750" height="500">
+<img src="docs/source/_static/Results_1.png" width="750" height="500">
 
 ## Documentation
 

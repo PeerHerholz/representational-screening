@@ -73,6 +73,11 @@ neuroimaging experiment while still separating the models, which makes
 the comparison interpretable and theory-driven rather than a single
 aggregate similarity score.
 
+.. image:: _static/Methods_schematic.png
+   :width: 750
+   :alt: The two screening stages, from a category-structured image
+         pool to a curated stimulus set.
+
 The method and its validation across model pairs are described in
 van Dyck, Flachot and Dobs (in preparation), *Model-guided stimulus
 curation for comparing artificial and biological vision*.
@@ -183,6 +188,19 @@ Or from the command line:
    repscreen --activation-dir data/activations \
              --models places365 imagenet \
              --output-dir results
+
+|
+
+Results
+=======
+
+Screening a ResNet trained on Places365 against a ResNet trained on
+ImageNet, the comparison the paper reports:
+
+.. image:: _static/Results_1.png
+   :width: 750
+   :alt: Curated stimuli and the resulting representational
+         dissimilarity matrices for both models.
 
 |
 
