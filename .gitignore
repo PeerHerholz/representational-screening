@@ -57,6 +57,11 @@ Thumbs.db
 *.gz
 *.zip
 
+# The committed examples gallery ships the downloadable archives
+# sphinx-gallery generates alongside each example page.
+!docs/source/auto_examples/**/*.zip
+!docs/source/auto_examples/*.zip
+
 # Data and run outputs
 /data/
 /cache/
