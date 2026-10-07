@@ -77,10 +77,30 @@ they have drifted apart.
 Containers
 ==========
 
-``generate_images.sh`` writes a ``Dockerfile`` and a
-``Singularity.def`` with neurodocker, and can build the images:
+``Dockerfile`` and ``Singularity.def`` are committed, so an image can
+be built without regenerating them.  ``generate_images.sh`` rewrites
+them with neurodocker, run through ``uvx`` at a pinned version:
 
 .. code-block:: bash
 
-   bash generate_images.sh docker
+   bash generate_images.sh both
+
+Adding ``local`` also builds the Apptainer image:
+
+.. code-block:: bash
+
    bash generate_images.sh both local
+
+which is the same as
+
+.. code-block:: bash
+
+   apptainer build --fakeroot repscreen.sif Singularity.def
+
+``--fakeroot`` needs an ``/etc/subuid`` and ``/etc/subgid`` entry for
+your user; ``apptainer build --help`` lists the alternatives when
+that entry is absent.
+
+The Docker image is built and published from the committed
+``Dockerfile`` by the container workflow, so no Docker daemon is
+needed to generate the definitions or to build the Apptainer image.
