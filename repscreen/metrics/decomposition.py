@@ -123,16 +123,105 @@ def classical_mds(
     return embedding, eigenvalues
 
 
-def _force_reflection(rotation, singular, left, right, reflection):
-    """Flip the last axis when the solution's handedness is wrong."""
-    has_reflection = np.linalg.det(rotation) < 0
-    if reflection == bool(has_reflection):
+@dataclass
+class _Centred:
+    """A configuration moved to the origin and scaled to unit norm.
+
+    Parameters
+    ----------
+    points : numpy.ndarray
+        The centred, unit-norm points.
+    mean : numpy.ndarray
+        The centroid that was subtracted.
+    norm : float
+        The centred Frobenius norm that was divided out.
+    scatter : float
+        The sum of squared deviations from the centroid.
+    """
+
+    points: np.ndarray
+    mean: np.ndarray
+    norm: float
+    scatter: float
+
+
+def _pad_dimensions(points, n_dimensions):
+    """Zero-pad ``points`` out to ``n_dimensions`` columns."""
+    missing = n_dimensions - points.shape[1]
+    if missing <= 0:
+        return points
+    return np.concatenate(
+        (points, np.zeros((len(points), missing))), axis=1
+    )
+
+
+def _centre(points, n_dimensions=None):
+    """Centre and scale a configuration, optionally zero-padding it."""
+    mean = points.mean(0)
+    centred = points - mean
+    scatter = float((centred**2.0).sum())
+    norm = np.sqrt(scatter)
+    centred = centred / norm
+    if n_dimensions is not None:
+        centred = _pad_dimensions(centred, n_dimensions)
+    return _Centred(centred, mean, norm, scatter)
+
+
+def _optimal_rotation(target, moved, reflection):
+    """Return the aligning rotation and its singular values.
+
+    ``reflection`` of ``"best"`` accepts whichever handedness fits
+    better; True or False flips the last axis when the better fit
+    disagrees with what was asked for.
+    """
+    left, singular, right_t = np.linalg.svd(
+        np.dot(target.T, moved), full_matrices=False
+    )
+    right = right_t.T
+    rotation = np.dot(right, left.T)
+
+    if reflection == "best":
         return rotation, singular
+    if bool(reflection) == bool(np.linalg.det(rotation) < 0):
+        return rotation, singular
+
     right = right.copy()
     singular = singular.copy()
     right[:, -1] *= -1
     singular[-1] *= -1
     return np.dot(right, left.T), singular
+
+
+def _fit(target, moved, rotation, trace, scaling):
+    """Return the scale, disparity and transformed points of a fit."""
+    rotated = np.dot(moved.points, rotation)
+    if scaling:
+        return (
+            trace * target.norm / moved.norm,
+            1 - trace**2,
+            target.norm * trace * rotated + target.mean,
+        )
+    return (
+        1,
+        1
+        + moved.scatter / target.scatter
+        - 2 * trace * moved.norm / target.norm,
+        moved.norm * rotated + target.mean,
+    )
+
+
+def _validate_procrustes(target, moved):
+    """Raise when two configurations cannot be aligned."""
+    if target.shape[0] != moved.shape[0]:
+        raise ValueError(
+            f"Both configurations must hold the same number of "
+            f"points, got {target.shape[0]} and {moved.shape[0]}."
+        )
+    if moved.shape[1] > target.shape[1]:
+        raise ValueError(
+            f"moved must not have more dimensions than target, got "
+            f"{moved.shape[1]} and {target.shape[1]}."
+        )
 
 
 def procrustes(
@@ -182,88 +271,31 @@ def procrustes(
         If the two configurations hold different numbers of points,
         or ``moved`` has more dimensions than ``target``.
     """
-    n_points, n_dimensions = target.shape
-    n_moved_points, n_moved_dimensions = moved.shape
+    _validate_procrustes(target, moved)
+    n_dimensions = target.shape[1]
+    n_moved_dimensions = moved.shape[1]
 
-    if n_points != n_moved_points:
-        raise ValueError(
-            f"Both configurations must hold the same number of "
-            f"points, got {n_points} and {n_moved_points}."
-        )
-    if n_moved_dimensions > n_dimensions:
-        raise ValueError(
-            f"moved must not have more dimensions than target, got "
-            f"{n_moved_dimensions} and {n_dimensions}."
-        )
+    centred_target = _centre(target)
+    centred_moved = _centre(moved, n_dimensions)
 
-    target_mean = target.mean(0)
-    moved_mean = moved.mean(0)
-    centred_target = target - target_mean
-    centred_moved = moved - moved_mean
-
-    target_scatter = (centred_target**2.0).sum()
-    moved_scatter = (centred_moved**2.0).sum()
-    target_norm = np.sqrt(target_scatter)
-    moved_norm = np.sqrt(moved_scatter)
-
-    centred_target = centred_target / target_norm
-    centred_moved = centred_moved / moved_norm
-
-    if n_moved_dimensions < n_dimensions:
-        centred_moved = np.concatenate(
-            (
-                centred_moved,
-                np.zeros(
-                    (n_points, n_dimensions - n_moved_dimensions)
-                ),
-            ),
-            axis=1,
-        )
-
-    left, singular, right_t = np.linalg.svd(
-        np.dot(centred_target.T, centred_moved), full_matrices=False
+    rotation, singular = _optimal_rotation(
+        centred_target.points, centred_moved.points, reflection
     )
-    right = right_t.T
-    rotation = np.dot(right, left.T)
-
-    if reflection != "best":
-        rotation, singular = _force_reflection(
-            rotation, singular, left, right, bool(reflection)
-        )
-
     trace = singular.sum()
-
-    if scaling:
-        scale = trace * target_norm / moved_norm
-        disparity = 1 - trace**2
-        transformed = (
-            target_norm
-            * trace
-            * np.dot(centred_moved, rotation)
-            + target_mean
-        )
-    else:
-        scale = 1
-        disparity = (
-            1
-            + moved_scatter / target_scatter
-            - 2 * trace * moved_norm / target_norm
-        )
-        transformed = (
-            moved_norm * np.dot(centred_moved, rotation)
-            + target_mean
-        )
+    scale, disparity, transformed = _fit(
+        centred_target, centred_moved, rotation, trace, scaling
+    )
 
     if n_moved_dimensions < n_dimensions:
         rotation = rotation[:n_moved_dimensions, :]
 
-    translation = target_mean - scale * np.dot(moved_mean, rotation)
     return (
         disparity,
         transformed,
         {
             "rotation": rotation,
             "scale": scale,
-            "translation": translation,
+            "translation": centred_target.mean
+            - scale * np.dot(centred_moved.mean, rotation),
         },
     )
