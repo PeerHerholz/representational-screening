@@ -42,3 +42,11 @@ Layers
    :members:
    :undoc-members:
    :show-inheritance:
+
+Decomposition
+=============
+
+.. automodule:: repscreen.metrics.decomposition
+   :members:
+   :undoc-members:
+   :show-inheritance:

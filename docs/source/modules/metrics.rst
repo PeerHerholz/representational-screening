@@ -88,3 +88,30 @@ Centred kernel alignment
 kernel alignment, an alternative to comparing dissimilarity matrices
 that is invariant to isotropic scaling and orthogonal transformation
 of either feature set.
+
+Decompositions
+==============
+
+:mod:`repscreen.metrics.decomposition` holds three linear-algebra
+helpers for looking at an activation space directly rather than
+through a dissimilarity matrix.
+:func:`~repscreen.metrics.decomposition.principal_components`
+decomposes a data matrix into its principal components and reports
+how much variance each carries.
+:func:`~repscreen.metrics.decomposition.classical_mds` embeds a
+distance matrix, keeping the dimensions with a positive eigenvalue,
+which makes it a deterministic alternative to the t-SNE embeddings
+in :mod:`repscreen.plotting.embedding`.
+:func:`~repscreen.metrics.decomposition.procrustes` aligns one
+configuration of points to another up to translation, rotation,
+reflection and uniform scaling, and returns the residual as a
+scale-free disparity.
+
+Across model instances
+======================
+
+When a set of models trained from different seeds is held in one
+array,
+:func:`~repscreen.metrics.layers.correlations_per_model` averages
+each instance's activations over one axis and correlates the
+resulting patterns, giving one correlation matrix per instance.
