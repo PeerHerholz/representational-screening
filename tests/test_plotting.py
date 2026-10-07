@@ -5,7 +5,10 @@ import pytest
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-from repscreen.metrics.layers import compare_rdms_per_layer
+from repscreen.metrics.layers import (
+    compare_rdms_per_layer,
+    correlations_per_model,
+)
 from repscreen.plotting.compactness import (
     plot_compactness,
     plot_compactness_per_model,
@@ -346,3 +349,51 @@ def test_image_tree_is_shaped_as_expected(image_tree):
     assert len(categories) == N_CATEGORIES
     images = list((image_tree / categories[0]).glob("*.jpg"))
     assert len(images) == N_PER_CATEGORY
+
+
+def test_correlations_per_model_shapes():
+    rng = np.random.default_rng(20)
+    activations = rng.normal(size=(3, 7, 5, 4))
+    result = correlations_per_model(activations)
+    assert result.shape == (3, 7, 7)
+
+
+def test_correlations_per_model_matches_a_direct_computation():
+    rng = np.random.default_rng(21)
+    activations = rng.normal(size=(3, 7, 5, 4))
+    result = correlations_per_model(activations)
+    for instance in range(3):
+        expected = np.corrcoef(
+            activations[instance].mean(axis=2)
+        )
+        assert np.allclose(result[instance], expected)
+
+
+def test_correlations_per_model_honours_the_averaging_axis():
+    rng = np.random.default_rng(22)
+    activations = rng.normal(size=(2, 6, 5, 4))
+    result = correlations_per_model(activations, mean_axis=3)
+    expected = np.corrcoef(activations[0].mean(axis=3))
+    assert np.allclose(result[0], expected)
+
+
+def test_correlations_per_model_honours_the_instance_axis():
+    rng = np.random.default_rng(23)
+    activations = rng.normal(size=(7, 3, 5, 4))
+    result = correlations_per_model(activations, instance_axis=1)
+    assert result.shape == (3, 7, 7)
+
+
+def test_correlations_per_model_adds_a_missing_instance_axis():
+    rng = np.random.default_rng(24)
+    activations = rng.normal(size=(6, 5))
+    result = correlations_per_model(activations, mean_axis=None)
+    assert result.shape == (1, 6, 6)
+
+
+def test_correlations_per_model_diagonal_is_one():
+    rng = np.random.default_rng(25)
+    activations = rng.normal(size=(2, 6, 5, 4))
+    result = correlations_per_model(activations)
+    for instance in range(2):
+        assert np.allclose(np.diag(result[instance]), 1.0)
