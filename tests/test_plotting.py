@@ -214,28 +214,54 @@ def test_tsne_model_comparison_returns_both_embeddings(
     assert isinstance(figure, Figure)
 
 
+@pytest.fixture
+def grouped_labels():
+    """Labels putting the six fixture items into three pairs.
+
+    The silhouette is undefined when every item is its own
+    cluster, so the labels have to group.
+    """
+    return [f"cat{i // 2}" for i in range(N_CATEGORIES)]
+
+
 def test_cluster_quality_reports_both_scores(
-    rdm_pair, category_names
+    rdm_pair, grouped_labels
 ):
     first, _ = rdm_pair
     embedding = tsne_from_rdm(first, random_state=0)
-    scores = cluster_quality(embedding, category_names)
+    scores = cluster_quality(embedding, grouped_labels)
     assert set(scores) == {
         "silhouette",
         "adjusted_rand_index",
         "n_clusters",
     }
-    assert scores["n_clusters"] == len(set(category_names))
+    assert scores["n_clusters"] == len(set(grouped_labels))
 
 
 def test_cluster_quality_scores_are_bounded(
+    rdm_pair, grouped_labels
+):
+    first, _ = rdm_pair
+    embedding = tsne_from_rdm(first, random_state=0)
+    scores = cluster_quality(embedding, grouped_labels)
+    assert -1.0 <= scores["silhouette"] <= 1.0
+    assert -1.0 <= scores["adjusted_rand_index"] <= 1.0
+
+
+def test_cluster_quality_rejects_one_cluster_per_item(
     rdm_pair, category_names
 ):
     first, _ = rdm_pair
     embedding = tsne_from_rdm(first, random_state=0)
-    scores = cluster_quality(embedding, category_names)
-    assert -1.0 <= scores["silhouette"] <= 1.0
-    assert -1.0 <= scores["adjusted_rand_index"] <= 1.0
+    with pytest.raises(ValueError, match="distinct labels"):
+        cluster_quality(embedding, category_names)
+
+
+def test_cluster_quality_rejects_a_single_cluster(rdm_pair):
+    first, _ = rdm_pair
+    embedding = tsne_from_rdm(first, random_state=0)
+    with pytest.raises(ValueError, match="distinct labels"):
+        cluster_quality(embedding, ["only"] * N_CATEGORIES)
 
 
 def test_load_rgb_image_reads_an_image(stimulus_paths):

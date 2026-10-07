@@ -148,16 +148,47 @@ def test_main_reports_the_similarity(
     assert "similarity" in capsys.readouterr().out.lower()
 
 
-def test_main_writes_figures_when_asked(activation_tree, tmp_path):
+def test_main_writes_figures_when_asked(
+    activation_tree, image_tree, tmp_path
+):
     figure_dir = tmp_path / "figures"
     argv = _argv(activation_tree, tmp_path / "results") + [
+        "--dataset-path",
+        str(image_tree),
+        "--replace-path-prefix",
+        "/dataset/",
         "--figure-dir",
         str(figure_dir),
     ]
     assert main(argv) == 0
     run_dir = figure_dir / f"{MODELS[0]}_{MODELS[1]}"
+    for name in (
+        "RDMs.png",
+        "catRDMs.png",
+        "compactness.png",
+        "subset.png",
+    ):
+        assert (run_dir / name).is_file()
+
+
+def test_main_skips_the_stimulus_grid_without_the_images(
+    activation_tree, tmp_path
+):
+    # The recorded image paths name a directory that does not
+    # exist here, which is what --dataset-path is for.  The three
+    # figures that need no images must still be written.
+    figure_dir = tmp_path / "figures"
+    argv = _argv(activation_tree, tmp_path / "results") + [
+        "--figure-dir",
+        str(figure_dir),
+    ]
+    with pytest.warns(UserWarning, match="stimulus image"):
+        assert main(argv) == 0
+    run_dir = figure_dir / f"{MODELS[0]}_{MODELS[1]}"
     assert (run_dir / "RDMs.png").is_file()
+    assert (run_dir / "catRDMs.png").is_file()
     assert (run_dir / "compactness.png").is_file()
+    assert not (run_dir / "subset.png").exists()
 
 
 def test_main_writes_no_figures_by_default(
