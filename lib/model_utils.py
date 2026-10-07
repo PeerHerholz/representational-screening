@@ -4,10 +4,10 @@ import pickle
 from os.path import join, exists
 import numpy as np
 
-def loadndefine(dataset, cheackpoint_dir= '/home/alban/Documents/checkpoints'):
+def loadndefine(dataset, checkpoint_dir):
     if dataset == 'faces':
         # Load the pickle file
-        with open(join(cheackpoint_dir, 'resnet50_scratch_weight.pkl'), 'rb') as f:
+        with open(join(checkpoint_dir, 'resnet50_scratch_weight.pkl'), 'rb') as f:
             state_dict = pickle.load(f)
 
         # Convert numpy arrays to torch tensors
@@ -33,7 +33,7 @@ def loadndefine(dataset, cheackpoint_dir= '/home/alban/Documents/checkpoints'):
 
         model = models.resnet50(num_classes=365)
 
-        checkpoint = torch.load(join(cheackpoint_dir, 'resnet50_places365.pth.tar'), map_location=torch.device('cpu'))
+        checkpoint = torch.load(join(checkpoint_dir, 'resnet50_places365.pth.tar'), map_location=torch.device('cpu'))
         state_dict = checkpoint['state_dict']
 
         # Remove the "module." prefix from all keys (this is from DataParallel)
