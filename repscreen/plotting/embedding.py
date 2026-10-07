@@ -307,10 +307,33 @@ def cluster_quality(embedding: np.ndarray, labels: Sequence[str]):
         ``adjusted_rand_index`` between the labels and a k-means
         partition of the embedding, and the ``n_clusters`` the
         labels define.
+
+    Raises
+    ------
+    ValueError
+        If there is not one label per item, or if the labels do not
+        define between 2 and ``n_items - 1`` clusters.  A single
+        cluster, or one cluster per item, leaves the silhouette
+        undefined.
     """
+    if len(labels) != len(embedding):
+        raise ValueError(
+            f"Needs one label per item, got {len(labels)} labels "
+            f"for {len(embedding)} items."
+        )
+
     encoder = LabelEncoder()
     encoded = encoder.fit_transform(labels)
     n_clusters = len(np.unique(encoded))
+    n_items = len(embedding)
+
+    if not 2 <= n_clusters <= n_items - 1:
+        raise ValueError(
+            f"Scoring {n_items} items needs between 2 and "
+            f"{n_items - 1} distinct labels, got {n_clusters}. "
+            f"The silhouette is undefined for a single cluster or "
+            f"for one cluster per item."
+        )
 
     kmeans = KMeans(
         n_clusters=n_clusters, random_state=42, n_init=10

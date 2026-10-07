@@ -1,6 +1,7 @@
 """Command-line interface for repscreen."""
 
 import argparse
+import warnings
 from pathlib import Path
 
 from ..config import (
@@ -239,6 +240,12 @@ def save_figures(result, figure_dir) -> list:
     -------
     list of pathlib.Path
         Paths of the written figures.
+
+    Warns
+    -----
+    UserWarning
+        If no stimulus image can be found on disk, so the stimulus
+        grid is skipped.
     """
     import matplotlib.pyplot as plt
 
@@ -265,11 +272,24 @@ def save_figures(result, figure_dir) -> list:
         "compactness.png": plot_compactness(
             result.compactness.sorted_compactness, models
         )[0],
-        "subset.png": plot_stimulus_grid(
+    }
+
+    # The recorded image paths may name the machine the activations
+    # were computed on, in which case the grid cannot be drawn.  The
+    # figures above need no images, so they are written either way.
+    if any(Path(path).is_file() for path in result.stimulus_paths):
+        figures["subset.png"] = plot_stimulus_grid(
             result.stimulus_paths,
             n_columns=len(result.selected_categories),
-        ),
-    }
+        )
+    else:
+        warnings.warn(
+            "No stimulus image was found on disk, so the stimulus "
+            "grid is not drawn. Pass --dataset-path to point the "
+            "recorded image paths at a local copy of the dataset.",
+            UserWarning,
+            stacklevel=2,
+        )
 
     written = []
     for name, figure in figures.items():
