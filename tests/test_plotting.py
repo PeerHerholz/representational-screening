@@ -359,13 +359,15 @@ def test_correlations_per_model_shapes():
 
 
 def test_correlations_per_model_matches_a_direct_computation():
+    # mean_axis counts on the array with the instance axis already
+    # moved to the front, so axis 2 of (instances, items, a, b)
+    # leaves one pattern of length b per item.
     rng = np.random.default_rng(21)
     activations = rng.normal(size=(3, 7, 5, 4))
     result = correlations_per_model(activations)
+    patterns = activations.mean(axis=2)
     for instance in range(3):
-        expected = np.corrcoef(
-            activations[instance].mean(axis=2)
-        )
+        expected = np.corrcoef(patterns[instance])
         assert np.allclose(result[instance], expected)
 
 
@@ -373,7 +375,7 @@ def test_correlations_per_model_honours_the_averaging_axis():
     rng = np.random.default_rng(22)
     activations = rng.normal(size=(2, 6, 5, 4))
     result = correlations_per_model(activations, mean_axis=3)
-    expected = np.corrcoef(activations[0].mean(axis=3))
+    expected = np.corrcoef(activations.mean(axis=3)[0])
     assert np.allclose(result[0], expected)
 
 
