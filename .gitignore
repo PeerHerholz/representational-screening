@@ -65,6 +65,7 @@ Thumbs.db
 # Data and run outputs
 /data/
 /cache/
+/results/
 figures/
 outputs_visualization/
 
