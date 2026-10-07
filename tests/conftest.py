@@ -1,7 +1,10 @@
 """Shared test fixtures for repscreen."""
 
+import matplotlib
 import numpy as np
 import pytest
+
+matplotlib.use("Agg")
 
 N_CATEGORIES = 6
 N_PER_CATEGORY = 5
