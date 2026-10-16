@@ -154,6 +154,35 @@ def test_run_screening_writes_to_the_output_dir(
     assert (run_dir / "compactness.npy").is_file()
 
 
+def test_run_screening_writes_figures_when_asked(
+    activation_tree, image_tree, tmp_path
+):
+    config = ScreeningConfig(
+        activations=ActivationConfig(
+            activation_dir=activation_tree,
+            models=MODELS,
+            dataset_path=image_tree,
+            replace_path_prefix="/dataset/",
+        ),
+        selection=SelectionConfig(
+            n_categories=N_SELECTED, n_exemplars=N_EXEMPLARS
+        ),
+        output=OutputConfig(figure_dir=tmp_path / "figures"),
+    )
+    result = run_screening(config)
+    run_dir = tmp_path / "figures" / result.name
+    assert (run_dir / "RDMs.png").is_file()
+    assert (run_dir / "compactness.png").is_file()
+    assert (run_dir / "subset.png").is_file()
+
+
+def test_run_screening_writes_no_figures_by_default(
+    activation_tree, tmp_path
+):
+    run_screening(_config(activation_tree))
+    assert not (tmp_path / "figures").exists()
+
+
 def test_run_screening_rejects_more_categories_than_available(
     activation_tree,
 ):

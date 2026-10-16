@@ -121,6 +121,29 @@ def test_config_from_args_passes_every_option_through(tmp_path):
     assert config.name == "custom"
 
 
+def test_config_from_args_maps_the_figure_dir(tmp_path):
+    args = build_parser().parse_args(
+        [
+            "--activation-dir",
+            "/acts",
+            "--models",
+            "a",
+            "b",
+            "--figure-dir",
+            str(tmp_path / "figures"),
+        ]
+    )
+    config = config_from_args(args)
+    assert config.output.figure_dir == tmp_path / "figures"
+
+
+def test_config_from_args_leaves_figure_dir_unset_by_default():
+    args = build_parser().parse_args(
+        ["--activation-dir", "/acts", "--models", "a", "b"]
+    )
+    assert config_from_args(args).output.figure_dir is None
+
+
 def test_main_returns_zero_and_writes_results(
     activation_tree, tmp_path
 ):

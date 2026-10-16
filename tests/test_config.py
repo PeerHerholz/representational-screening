@@ -128,6 +128,15 @@ def test_output_config_coerces_output_dir():
     assert cfg.output_dir == Path("results/run")
 
 
+def test_output_config_figure_dir_defaults_to_none():
+    assert OutputConfig().figure_dir is None
+
+
+def test_output_config_coerces_figure_dir():
+    cfg = OutputConfig(figure_dir="figures/run")
+    assert cfg.figure_dir == Path("figures/run")
+
+
 def test_output_config_invalid_format():
     with pytest.raises(ValueError, match="Unknown output format"):
         OutputConfig(formats=("parquet",))
