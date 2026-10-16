@@ -67,6 +67,15 @@ docs = [
     "pandas>=2.0.0",
 ]
 
+# Declared as dependency groups as well as extras so that "uv run"
+# finds the development tools without a flag: uv syncs the "dev"
+# group by default, while extras are installed only on request.  The
+# groups reference the extras above, so the dependency lists are not
+# duplicated.
+[dependency-groups]
+dev = ["repscreen[dev]"]
+docs = ["repscreen[docs]"]
+
 [project.urls]
 Homepage = "https://github.com/PeerHerholz/representational-screening"
 Documentation = "https://PeerHerholz.github.io/representational-screening"
