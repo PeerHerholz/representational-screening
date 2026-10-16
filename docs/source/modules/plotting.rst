@@ -9,6 +9,63 @@ notebook and the documentation gallery.  Functions that draw a
 single panel also accept an existing ``ax``, which makes them
 composable into a larger layout.
 
+The standard set
+================
+
+:func:`~repscreen.plotting.report.save_screening_figures` writes the
+four figures a screening run is usually inspected through, into a
+subdirectory of the given root named after the run:
+
+``RDMs.png``
+    The two models' dissimilarity matrices over the curated set,
+    with their similarity in the title.
+``catRDMs.png``
+    The same, over every exemplar of the selected categories.
+``compactness.png``
+    Compactness per category, each model sorted on its own.
+``subset.png``
+    The curated stimuli, one column per category.
+
+It is called for you when ``OutputConfig.figure_dir`` is set, so one
+call produces results and figures together:
+
+.. code-block:: python
+
+   from repscreen.config import (
+       ActivationConfig, OutputConfig, ScreeningConfig,
+   )
+   from repscreen.screening.pipeline import run_screening
+
+   config = ScreeningConfig(
+       activations=ActivationConfig(
+           activation_dir="data/activations",
+           models=("places365", "imagenet"),
+           dataset_path="data/dataset",
+       ),
+       output=OutputConfig(
+           output_dir="results", figure_dir="figures",
+       ),
+   )
+   result = run_screening(config)
+
+Or call it yourself, which is useful when the figures are wanted for
+a result already in hand:
+
+.. code-block:: python
+
+   from repscreen.plotting.report import save_screening_figures
+
+   save_screening_figures(result, "figures")
+
+``subset.png`` needs the stimulus images on disk.  The recorded image
+paths may name the machine the activations were computed on, so
+``dataset_path`` is what lets the grid be drawn; without it that one
+figure is skipped with a warning and the other three are still
+written.
+
+The functions below build the individual figures, for a layout of
+your own.
+
 Dissimilarity matrices
 ======================
 

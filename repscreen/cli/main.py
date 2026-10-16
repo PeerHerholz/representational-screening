@@ -1,7 +1,6 @@
 """Command-line interface for repscreen."""
 
 import argparse
-import warnings
 from pathlib import Path
 
 from ..config import (
@@ -220,84 +219,10 @@ def config_from_args(args) -> ScreeningConfig:
             output_dir=args.output_dir,
             formats=tuple(args.formats),
             save_rdms=not args.no_rdms,
+            figure_dir=args.figure_dir,
         ),
         name=args.name,
     )
-
-
-def save_figures(result, figure_dir) -> list:
-    """Write the standard figures of a screening run.
-
-    Parameters
-    ----------
-    result : ScreeningResult
-        Result to draw.
-    figure_dir : path-like
-        Directory the figures are written to, under a subdirectory
-        named after the run.
-
-    Returns
-    -------
-    list of pathlib.Path
-        Paths of the written figures.
-
-    Warns
-    -----
-    UserWarning
-        If no stimulus image can be found on disk, so the stimulus
-        grid is skipped.
-    """
-    import matplotlib.pyplot as plt
-
-    from ..plotting.compactness import plot_compactness
-    from ..plotting.rdm import plot_rdm_pair
-    from ..plotting.stimuli import plot_stimulus_grid
-
-    run_dir = Path(figure_dir) / result.name
-    run_dir.mkdir(parents=True, exist_ok=True)
-    models = list(result.models)
-
-    figures = {
-        "RDMs.png": plot_rdm_pair(
-            result.selected_rdms[models[0]],
-            result.selected_rdms[models[1]],
-            model_names=models,
-            similarity=result.similarity,
-        ),
-        "catRDMs.png": plot_rdm_pair(
-            result.full_rdms[models[0]],
-            result.full_rdms[models[1]],
-            model_names=models,
-        ),
-        "compactness.png": plot_compactness(
-            result.compactness.sorted_compactness, models
-        )[0],
-    }
-
-    # The recorded image paths may name the machine the activations
-    # were computed on, in which case the grid cannot be drawn.  The
-    # figures above need no images, so they are written either way.
-    if any(Path(path).is_file() for path in result.stimulus_paths):
-        figures["subset.png"] = plot_stimulus_grid(
-            result.stimulus_paths,
-            n_columns=len(result.selected_categories),
-        )
-    else:
-        warnings.warn(
-            "No stimulus image was found on disk, so the stimulus "
-            "grid is not drawn. Pass --dataset-path to point the "
-            "recorded image paths at a local copy of the dataset.",
-            UserWarning,
-            stacklevel=2,
-        )
-
-    written = []
-    for name, figure in figures.items():
-        path = run_dir / name
-        figure.savefig(path, dpi=150, bbox_inches="tight")
-        plt.close(figure)
-        written.append(path)
-    return written
 
 
 def main(argv=None) -> int:
@@ -331,7 +256,6 @@ def main(argv=None) -> int:
     )
 
     if args.figure_dir is not None:
-        for path in save_figures(result, args.figure_dir):
-            print(f"Wrote {path}")
+        print(f"Wrote figures to {args.figure_dir / config.name}")
 
     return 0

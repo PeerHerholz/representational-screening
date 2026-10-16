@@ -34,6 +34,10 @@ results:
 since the recorded paths may name the machine the activations were
 computed on.
 
+``--figure-dir`` sets ``OutputConfig.figure_dir``, so the command and
+a Python script produce figures through the same code path; see
+:doc:`plotting`.
+
 See :doc:`../cli` for the full argument reference, and
 :func:`~repscreen.cli.main.config_from_args` for how the arguments
 map onto a :class:`~repscreen.config.ScreeningConfig`.

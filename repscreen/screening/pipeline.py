@@ -109,7 +109,9 @@ def run_screening(config: ScreeningConfig) -> ScreeningResult:
     ----------
     config : ScreeningConfig
         Activation sources, compactness measure, selection sizes
-        and output settings.
+        and output settings.  Results are written when
+        ``config.output.output_dir`` is set, and the standard
+        figures when ``config.output.figure_dir`` is set.
 
     Returns
     -------
@@ -174,4 +176,12 @@ def run_screening(config: ScreeningConfig) -> ScreeningResult:
         formats=config.output.formats,
         save_rdms=config.output.save_rdms,
     )
+
+    # Imported here so that using the pipeline without figures does
+    # not pull in matplotlib.
+    if config.output.figure_dir is not None:
+        from ..plotting.report import save_screening_figures
+
+        save_screening_figures(result, config.output.figure_dir)
+
     return result

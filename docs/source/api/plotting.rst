@@ -35,6 +35,14 @@ Stimuli
    :undoc-members:
    :show-inheritance:
 
+Screening Report
+================
+
+.. automodule:: repscreen.plotting.report
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Signatures
 ==========
 

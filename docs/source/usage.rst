@@ -92,6 +92,28 @@ grouped activations directly:
 Inspecting the outcome
 ======================
 
+The quickest route is to let the run write the standard figures, by
+setting ``figure_dir`` alongside ``output_dir``:
+
+.. code-block:: python
+
+   from repscreen.config import OutputConfig
+
+   output=OutputConfig(output_dir="results", figure_dir="figures")
+
+That writes ``RDMs.png``, ``catRDMs.png``, ``compactness.png`` and
+``subset.png`` under ``figures/<run name>/``.  The same thing for a
+result already in hand:
+
+.. code-block:: python
+
+   from repscreen.plotting.report import save_screening_figures
+
+   save_screening_figures(result, "figures")
+
+For anything beyond that set, build the figures yourself from the
+result object:
+
 .. code-block:: python
 
    from repscreen.plotting.compactness import (

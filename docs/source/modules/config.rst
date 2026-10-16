@@ -24,8 +24,9 @@ part-way through a run.
     which metrics build and compare the dissimilarity matrices.
 
 :class:`~repscreen.config.OutputConfig`
-    Where results are written, in which formats, and whether the
-    dissimilarity matrices are written alongside them.
+    Where results are written, in which formats, whether the
+    dissimilarity matrices are written alongside them, and where the
+    standard figures go.
 
 .. code-block:: python
 

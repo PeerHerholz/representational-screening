@@ -242,15 +242,22 @@ class OutputConfig:
     save_rdms : bool
         Whether to write the category-level and exemplar-level
         dissimilarity matrices alongside the selection.
+    figure_dir : path-like or None
+        Directory the standard figures are written to, under a
+        subdirectory named after the run.  No figures are produced
+        when None.
     """
 
     output_dir: Optional[Path] = None
     formats: Tuple[str, ...] = ("npy", "json")
     save_rdms: bool = True
+    figure_dir: Optional[Path] = None
 
     def __post_init__(self):
         if self.output_dir is not None:
             self.output_dir = Path(self.output_dir)
+        if self.figure_dir is not None:
+            self.figure_dir = Path(self.figure_dir)
         self.formats = tuple(self.formats)
         validate_output_config(self)
 
