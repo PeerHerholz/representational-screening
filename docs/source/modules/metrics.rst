@@ -70,6 +70,21 @@ and registered in
     Worst-case overlap with any other category.  Unlike the others,
     a higher value marks a *less* compact category.
 
+Only eight of the nine give an independent ranking:
+``CH_Index_adapted`` is ``1 - 1 / CH_Index``, a monotone increasing
+transform, so those two always order the categories identically. They
+differ only in scale, with ``CH_Index_adapted`` on the same scale as
+``R-squared``.
+
+How much the remaining measures differ depends on the data. On
+activations scaled to unit length, which is what
+:class:`~repscreen.config.ActivationConfig` does by default, the
+measures rank categories almost identically, because removing the
+magnitudes leaves the angular spread as the one thing they all
+respond to. Keeping the magnitudes separates them. The
+:ref:`sphx_glr_auto_examples_plot_compactness_measures.py` example
+shows both regimes side by side.
+
 Contrasting two models
 ======================
 

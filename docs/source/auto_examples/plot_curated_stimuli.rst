@@ -131,7 +131,7 @@ The two geometries
 
 
 .. image-sg:: /auto_examples/images/sphx_glr_plot_curated_stimuli_001.png
-   :alt: Representational dissimilarity similarity = 0.293, model_compact, model_diffuse
+   :alt: Representational dissimilarity similarity = -0.118, model_a, model_b
    :srcset: /auto_examples/images/sphx_glr_plot_curated_stimuli_001.png
    :class: sphx-glr-single-img
 
@@ -167,7 +167,7 @@ change in the layout of one colour.
 
 
 .. image-sg:: /auto_examples/images/sphx_glr_plot_curated_stimuli_002.png
-   :alt: Curated set under both models, model_compact, model_diffuse
+   :alt: Curated set under both models, model_a, model_b
    :srcset: /auto_examples/images/sphx_glr_plot_curated_stimuli_002.png
    :class: sphx-glr-single-img
 
@@ -204,8 +204,8 @@ categories apart scores higher on both.
 
  .. code-block:: none
 
-    model_compact    silhouette +0.545, ARI +0.823
-    model_diffuse    silhouette +0.342, ARI +0.559
+    model_a          silhouette +0.237, ARI +0.439
+    model_b          silhouette +0.043, ARI +0.261
 
 
 
@@ -213,7 +213,7 @@ categories apart scores higher on both.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.973 seconds)
+   **Total running time of the script:** (0 minutes 0.984 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_curated_stimuli.py:

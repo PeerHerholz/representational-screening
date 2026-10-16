@@ -69,20 +69,20 @@ Scoring every measure
 
  .. code-block:: none
 
-    R-squared                      range [+0.192, +0.845]
-    R-squared_adjusted             range [-0.267, +0.876]
-    Fisher_discriminant            range [+0.329, +0.917]
-    CH_Index                       range [+0.233, +5.162]
-    CH_Index_adapted               range [-3.296, +0.806]
-    silhouette_score               range [+0.016, +0.803]
-    global_silhouette_score        range [+0.108, +0.830]
-    simplified_silhouette_score    range [-0.637, +0.819]
-    Davies-Bouldin_Index           range [+0.995, +5.358]
+    R-squared                      range [+0.077, +0.689]
+    R-squared_adjusted             range [-1.985, +0.642]
+    Fisher_discriminant            range [+0.153, +0.817]
+    CH_Index                       range [+0.090, +2.064]
+    CH_Index_adapted               range [-10.109, +0.515]
+    silhouette_score               range [-0.064, +0.629]
+    global_silhouette_score        range [-0.018, +0.657]
+    simplified_silhouette_score    range [-0.856, +0.527]
+    Davies-Bouldin_Index           range [+1.838, +13.701]
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-47
+.. GENERATED FROM PYTHON SOURCE LINES 41-54
 
 How much do they agree?
 -----------------------
@@ -91,42 +91,66 @@ The measures live on different scales, so they are compared by
 rank.  ``Davies-Bouldin_Index`` is negated first, because for that
 measure a higher value marks a *less* compact category.
 
-.. GENERATED FROM PYTHON SOURCE LINES 47-74
+Two regimes are shown.  The left panel uses the activations as the
+screening sees them, scaled to unit length; the right keeps the
+magnitudes.  The measures nearly coincide once magnitude is
+removed, and separate when it is kept, so the near-uniform left
+panel is a consequence of normalisation rather than evidence that
+the measures are interchangeable.
+
+.. GENERATED FROM PYTHON SOURCE LINES 54-98
 
 .. code-block:: Python
 
 
     names = list(COMPACTNESS_MEASURES)
-    ranked = np.array(
-        [
-            np.argsort(
-                np.argsort(
-                    -scores[name]
-                    if name == "Davies-Bouldin_Index"
-                    else scores[name]
-                )
-            )
-            for name in names
-        ]
-    )
-    agreement = np.corrcoef(ranked)
 
-    figure, axes = plt.subplots(figsize=(7, 6))
-    image = axes.imshow(agreement, cmap="coolwarm", vmin=-1, vmax=1)
-    axes.set_xticks(range(len(names)))
-    axes.set_xticklabels(names, rotation=90)
-    axes.set_yticks(range(len(names)))
-    axes.set_yticklabels(names)
-    axes.set_title("Rank agreement between compactness measures")
-    figure.colorbar(image, ax=axes, shrink=0.8)
-    figure.tight_layout()
+
+    def rank_agreement(acts):
+        """Rank-correlate every pair of measures on one model."""
+        scored = {
+            name: compute_compactness(acts, measure=name)
+            for name in names
+        }
+        ranked = np.array(
+            [
+                np.argsort(
+                    np.argsort(
+                        -scored[name]
+                        if name == "Davies-Bouldin_Index"
+                        else scored[name]
+                    )
+                )
+                for name in names
+            ]
+        )
+        return np.corrcoef(ranked)
+
+
+    unnormalised, _ = synthetic_activations(seed=0, normalize=False)
+    panels = (
+        ("unit length\n(as screening runs)", activations[MODELS[0]]),
+        ("magnitudes kept", unnormalised[MODELS[0]]),
+    )
+
+    figure, axes = plt.subplots(1, 2, figsize=(13, 6))
+    for axis, (title, acts) in zip(axes, panels):
+        agreement = rank_agreement(acts)
+        off = agreement[np.triu_indices(len(names), k=1)]
+        image = axis.imshow(agreement, cmap="coolwarm", vmin=-1, vmax=1)
+        axis.set_xticks(range(len(names)))
+        axis.set_xticklabels(names, rotation=90)
+        axis.set_yticks(range(len(names)))
+        axis.set_yticklabels(names if title.startswith("unit") else [])
+        axis.set_title(f"{title}\nmin {off.min():+.2f}, mean {off.mean():+.2f}")
+    figure.colorbar(image, ax=axes, shrink=0.7)
     plt.show()
 
 
 
 
 .. image-sg:: /auto_examples/images/sphx_glr_plot_compactness_measures_001.png
-   :alt: Rank agreement between compactness measures
+   :alt: unit length (as screening runs) min +0.94, mean +0.98, magnitudes kept min +0.46, mean +0.86
    :srcset: /auto_examples/images/sphx_glr_plot_compactness_measures_001.png
    :class: sphx-glr-single-img
 
@@ -134,17 +158,56 @@ measure a higher value marks a *less* compact category.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 75-82
+.. GENERATED FROM PYTHON SOURCE LINES 99-106
+
+One tie is unavoidable
+----------------------
+
+``CH_Index_adapted`` is ``1 - 1 / CH_Index``, and that transform is
+monotone increasing, so those two measures can never disagree about
+the order of the categories.  Of the nine measures only eight give
+an independent ranking.
+
+.. GENERATED FROM PYTHON SOURCE LINES 106-117
+
+.. code-block:: Python
+
+
+    reference = rank_agreement(activations[MODELS[0]])
+    pair = (
+        names.index("CH_Index"),
+        names.index("CH_Index_adapted"),
+    )
+    print(
+        f"CH_Index vs CH_Index_adapted: "
+        f"{reference[pair[0], pair[1]]:+.4f}"
+    )
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ .. code-block:: none
+
+    CH_Index vs CH_Index_adapted: +1.0000
+
+
+
+
+.. GENERATED FROM PYTHON SOURCE LINES 118-126
 
 Do the models agree with each other?
 ------------------------------------
 
 Under the default measure, plotting one model's compactness against
-the other's shows how much room the screening has: a low
-correlation means many categories are compact under one model and
-diffuse under the other.
+the other's shows how much room the screening has.  These two models
+are built to disagree, so the correlation is negative: the
+categories one model holds tightly are the ones the other spreads
+out.
 
-.. GENERATED FROM PYTHON SOURCE LINES 82-91
+.. GENERATED FROM PYTHON SOURCE LINES 126-135
 
 .. code-block:: Python
 
@@ -161,7 +224,7 @@ diffuse under the other.
 
 
 .. image-sg:: /auto_examples/images/sphx_glr_plot_compactness_measures_002.png
-   :alt: model_compact vs model_diffuse: 0.45
+   :alt: model_a vs model_b: -0.4
    :srcset: /auto_examples/images/sphx_glr_plot_compactness_measures_002.png
    :class: sphx-glr-single-img
 
@@ -169,7 +232,7 @@ diffuse under the other.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 92-97
+.. GENERATED FROM PYTHON SOURCE LINES 136-141
 
 Does the measure change the selection?
 --------------------------------------
@@ -177,7 +240,7 @@ Does the measure change the selection?
 Running the category stage with each measure and comparing the
 selections shows how much the choice matters in practice.
 
-.. GENERATED FROM PYTHON SOURCE LINES 97-118
+.. GENERATED FROM PYTHON SOURCE LINES 141-162
 
 .. code-block:: Python
 
@@ -212,7 +275,7 @@ selections shows how much the choice matters in practice.
 
     R-squared              reference selection
     Fisher_discriminant    shares 12/12 categories
-    CH_Index               shares 10/12 categories
+    CH_Index               shares 11/12 categories
 
 
 
@@ -220,7 +283,7 @@ selections shows how much the choice matters in practice.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.567 seconds)
+   **Total running time of the script:** (0 minutes 1.454 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_compactness_measures.py:

@@ -44,41 +44,85 @@ for measure, values in scores.items():
 # The measures live on different scales, so they are compared by
 # rank.  ``Davies-Bouldin_Index`` is negated first, because for that
 # measure a higher value marks a *less* compact category.
+#
+# Two regimes are shown.  The left panel uses the activations as the
+# screening sees them, scaled to unit length; the right keeps the
+# magnitudes.  The measures nearly coincide once magnitude is
+# removed, and separate when it is kept, so the near-uniform left
+# panel is a consequence of normalisation rather than evidence that
+# the measures are interchangeable.
 
 names = list(COMPACTNESS_MEASURES)
-ranked = np.array(
-    [
-        np.argsort(
-            np.argsort(
-                -scores[name]
-                if name == "Davies-Bouldin_Index"
-                else scores[name]
-            )
-        )
-        for name in names
-    ]
-)
-agreement = np.corrcoef(ranked)
 
-figure, axes = plt.subplots(figsize=(7, 6))
-image = axes.imshow(agreement, cmap="coolwarm", vmin=-1, vmax=1)
-axes.set_xticks(range(len(names)))
-axes.set_xticklabels(names, rotation=90)
-axes.set_yticks(range(len(names)))
-axes.set_yticklabels(names)
-axes.set_title("Rank agreement between compactness measures")
-figure.colorbar(image, ax=axes, shrink=0.8)
-figure.tight_layout()
+
+def rank_agreement(acts):
+    """Rank-correlate every pair of measures on one model."""
+    scored = {
+        name: compute_compactness(acts, measure=name)
+        for name in names
+    }
+    ranked = np.array(
+        [
+            np.argsort(
+                np.argsort(
+                    -scored[name]
+                    if name == "Davies-Bouldin_Index"
+                    else scored[name]
+                )
+            )
+            for name in names
+        ]
+    )
+    return np.corrcoef(ranked)
+
+
+unnormalised, _ = synthetic_activations(seed=0, normalize=False)
+panels = (
+    ("unit length\n(as screening runs)", activations[MODELS[0]]),
+    ("magnitudes kept", unnormalised[MODELS[0]]),
+)
+
+figure, axes = plt.subplots(1, 2, figsize=(13, 6))
+for axis, (title, acts) in zip(axes, panels):
+    agreement = rank_agreement(acts)
+    off = agreement[np.triu_indices(len(names), k=1)]
+    image = axis.imshow(agreement, cmap="coolwarm", vmin=-1, vmax=1)
+    axis.set_xticks(range(len(names)))
+    axis.set_xticklabels(names, rotation=90)
+    axis.set_yticks(range(len(names)))
+    axis.set_yticklabels(names if title.startswith("unit") else [])
+    axis.set_title(f"{title}\nmin {off.min():+.2f}, mean {off.mean():+.2f}")
+figure.colorbar(image, ax=axes, shrink=0.7)
 plt.show()
+
+# %%
+# One tie is unavoidable
+# ----------------------
+#
+# ``CH_Index_adapted`` is ``1 - 1 / CH_Index``, and that transform is
+# monotone increasing, so those two measures can never disagree about
+# the order of the categories.  Of the nine measures only eight give
+# an independent ranking.
+
+reference = rank_agreement(activations[MODELS[0]])
+pair = (
+    names.index("CH_Index"),
+    names.index("CH_Index_adapted"),
+)
+print(
+    f"CH_Index vs CH_Index_adapted: "
+    f"{reference[pair[0], pair[1]]:+.4f}"
+)
 
 # %%
 # Do the models agree with each other?
 # ------------------------------------
 #
 # Under the default measure, plotting one model's compactness against
-# the other's shows how much room the screening has: a low
-# correlation means many categories are compact under one model and
-# diffuse under the other.
+# the other's shows how much room the screening has.  These two models
+# are built to disagree, so the correlation is negative: the
+# categories one model holds tightly are the ones the other spreads
+# out.
 
 compactness = compute_compactness_pair(
     activations, MODELS, category_names, measure="R-squared"

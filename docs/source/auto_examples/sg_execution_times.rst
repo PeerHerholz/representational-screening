@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:02.890** total execution time for 5 files **from auto_examples**:
+**00:03.771** total execution time for 5 files **from auto_examples**:
 
 .. container::
 
@@ -32,18 +32,18 @@ Computation times
    * - Example
      - Time
      - Mem (MB)
+   * - :ref:`sphx_glr_auto_examples_plot_compactness_measures.py` (``plot_compactness_measures.py``)
+     - 00:01.454
+     - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_curated_stimuli.py` (``plot_curated_stimuli.py``)
-     - 00:00.973
+     - 00:00.984
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_null_distribution.py` (``plot_null_distribution.py``)
-     - 00:00.636
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_plot_compactness_measures.py` (``plot_compactness_measures.py``)
-     - 00:00.567
+     - 00:00.628
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_category_signatures.py` (``plot_category_signatures.py``)
-     - 00:00.428
+     - 00:00.432
      - 0.0
    * - :ref:`sphx_glr_auto_examples_plot_screening_run.py` (``plot_screening_run.py``)
-     - 00:00.286
+     - 00:00.274
      - 0.0

@@ -78,7 +78,7 @@ Screening first
 
  .. code-block:: none
 
-    curated set similarity: +0.168
+    curated set similarity: -0.098
 
 
 
@@ -117,7 +117,7 @@ category stage.
 
  .. code-block:: none
 
-    random categories: +0.377 +/- 0.061
+    random categories: +0.029 +/- 0.011
 
 
 
@@ -156,7 +156,7 @@ contributed.
 
  .. code-block:: none
 
-    random exemplars: +0.363 +/- 0.040
+    random exemplars: +0.031 +/- 0.027
 
 
 
@@ -248,7 +248,7 @@ curated set is the empirical p-value of the selection.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.636 seconds)
+   **Total running time of the script:** (0 minutes 0.628 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_null_distribution.py:

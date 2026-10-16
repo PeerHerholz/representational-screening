@@ -75,18 +75,20 @@ for.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 41-49
+.. GENERATED FROM PYTHON SOURCE LINES 41-51
 
 Compactness
 -----------
 
 How tightly each category's exemplars cluster, under each model
-separately.  Sorting each model's own scores shows the two models
-cover a similar range, so a category that is compact under one and
-diffuse under the other is a difference in which categories, not in
-overall scale.
+separately.  Sorted on each model's own scores the two curves look
+alike, because neither model is globally more compact than the
+other: they cover the same range and disagree about *which*
+categories fall where in it.  That disagreement is what the
+screening is after, and it is visible in the scatter plot of the
+compactness comparison example rather than here.
 
-.. GENERATED FROM PYTHON SOURCE LINES 49-61
+.. GENERATED FROM PYTHON SOURCE LINES 51-63
 
 .. code-block:: Python
 
@@ -114,7 +116,7 @@ overall scale.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 62-68
+.. GENERATED FROM PYTHON SOURCE LINES 64-70
 
 Screening the categories
 ------------------------
@@ -123,7 +125,7 @@ The combined score rewards a large compactness difference between
 the models and penalises agreement about where the category sits
 among the others.
 
-.. GENERATED FROM PYTHON SOURCE LINES 68-84
+.. GENERATED FROM PYTHON SOURCE LINES 70-86
 
 .. code-block:: Python
 
@@ -151,16 +153,16 @@ among the others.
 
  .. code-block:: none
 
-    0012_category12: score +1.550 (difference +1.394, correlation -0.156)
-    0016_category16: score +0.538 (difference +0.766, correlation +0.229)
-    0001_category1: score +0.530 (difference +0.985, correlation +0.455)
-    0008_category8: score +0.485 (difference -0.787, correlation +0.302)
-    0018_category18: score +0.391 (difference -0.946, correlation +0.554)
+    0012_category12: score +1.854 (difference +1.261, correlation -0.593)
+    0005_category5: score +1.762 (difference -1.183, correlation -0.579)
+    0003_category3: score +1.576 (difference +1.092, correlation -0.484)
+    0018_category18: score +1.544 (difference -1.093, correlation -0.451)
+    0013_category13: score +1.214 (difference +0.620, correlation -0.594)
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 85-91
+.. GENERATED FROM PYTHON SOURCE LINES 87-93
 
 Where the selected categories sit
 ---------------------------------
@@ -169,7 +171,7 @@ Plotting the combined score against the category index shows the
 selection is not a contiguous block: it picks out individual
 categories across the pool.
 
-.. GENERATED FROM PYTHON SOURCE LINES 91-107
+.. GENERATED FROM PYTHON SOURCE LINES 93-109
 
 .. code-block:: Python
 
@@ -201,7 +203,7 @@ categories across the pool.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 108-113
+.. GENERATED FROM PYTHON SOURCE LINES 110-115
 
 Screening the exemplars
 -----------------------
@@ -209,7 +211,7 @@ Screening the exemplars
 Within the selected categories, the exemplars the two models relate
 most differently are kept: four per category, for 48 stimuli.
 
-.. GENERATED FROM PYTHON SOURCE LINES 113-123
+.. GENERATED FROM PYTHON SOURCE LINES 115-125
 
 .. code-block:: Python
 
@@ -236,7 +238,7 @@ most differently are kept: four per category, for 48 stimuli.
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 124-130
+.. GENERATED FROM PYTHON SOURCE LINES 126-132
 
 What the curation achieved
 --------------------------
@@ -245,7 +247,7 @@ Comparing the two models over all exemplars of the selected
 categories, and then over the curated set alone, shows what the
 exemplar stage contributed on top of the category stage.
 
-.. GENERATED FROM PYTHON SOURCE LINES 130-144
+.. GENERATED FROM PYTHON SOURCE LINES 132-146
 
 .. code-block:: Python
 
@@ -271,13 +273,13 @@ exemplar stage contributed on top of the category stage.
 
  .. code-block:: none
 
-    selected categories, all exemplars: +0.364
-    curated set:                        +0.168
+    selected categories, all exemplars: +0.031
+    curated set:                        -0.098
 
 
 
 
-.. GENERATED FROM PYTHON SOURCE LINES 145-150
+.. GENERATED FROM PYTHON SOURCE LINES 147-152
 
 The curated dissimilarity matrices
 ----------------------------------
@@ -285,7 +287,7 @@ The curated dissimilarity matrices
 The two models' geometries over the 48 curated stimuli, side by
 side.
 
-.. GENERATED FROM PYTHON SOURCE LINES 150-158
+.. GENERATED FROM PYTHON SOURCE LINES 152-160
 
 .. code-block:: Python
 
@@ -301,7 +303,7 @@ side.
 
 
 .. image-sg:: /auto_examples/images/sphx_glr_plot_screening_run_003.png
-   :alt: Representational dissimilarity similarity = 0.168, model_compact, model_diffuse
+   :alt: Representational dissimilarity similarity = -0.098, model_a, model_b
    :srcset: /auto_examples/images/sphx_glr_plot_screening_run_003.png
    :class: sphx-glr-single-img
 
@@ -312,7 +314,7 @@ side.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.286 seconds)
+   **Total running time of the script:** (0 minutes 0.274 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_screening_run.py:

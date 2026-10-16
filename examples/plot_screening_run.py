@@ -42,10 +42,12 @@ print(f"activation shape: {activations[MODELS[0]].shape}")
 # -----------
 #
 # How tightly each category's exemplars cluster, under each model
-# separately.  Sorting each model's own scores shows the two models
-# cover a similar range, so a category that is compact under one and
-# diffuse under the other is a difference in which categories, not in
-# overall scale.
+# separately.  Sorted on each model's own scores the two curves look
+# alike, because neither model is globally more compact than the
+# other: they cover the same range and disagree about *which*
+# categories fall where in it.  That disagreement is what the
+# screening is after, and it is visible in the scatter plot of the
+# compactness comparison example rather than here.
 
 compactness = compute_compactness_pair(
     activations, MODELS, category_names, measure="R-squared"
