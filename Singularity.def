@@ -205,4 +205,4 @@ su - repscreen
 # End saving to specification to JSON.
 
 %runscript
-/neurodocker/startup.sh
+/neurodocker/startup.sh "$@"

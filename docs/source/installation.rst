@@ -101,6 +101,31 @@ which is the same as
 your user; ``apptainer build --help`` lists the alternatives when
 that entry is absent.
 
-The Docker image is built and published from the committed
-``Dockerfile`` by the container workflow, so no Docker daemon is
-needed to generate the definitions or to build the Apptainer image.
+No image is published, so an image is built from a checkout, which
+pins the version as a side effect.  Generating the definitions and
+building the Apptainer image need no Docker daemon; building the
+Docker image does:
+
+.. code-block:: bash
+
+   docker build -t repscreen:local .
+
+Running it
+----------
+
+Both runtimes pass arguments through to the ``repscreen`` command:
+
+.. code-block:: bash
+
+   docker run -ti --rm repscreen:local repscreen --help
+   apptainer run repscreen.sif repscreen --help
+
+Mounting a directory lets results outlive the container:
+
+.. code-block:: bash
+
+   docker run -ti --rm \
+     -v "$(pwd)":/workspace \
+     -w /workspace \
+     repscreen:local \
+     repscreen --help

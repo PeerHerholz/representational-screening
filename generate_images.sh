@@ -58,7 +58,8 @@ generate_singularity() {
              --user root \
              --run 'chown -R repscreen /home/repscreen' \
              --user repscreen \
-             --workdir '/home/repscreen'
+             --workdir '/home/repscreen' \
+             --entrypoint '/neurodocker/startup.sh "$@"'
 }
 
 # Function to build the Apptainer image from the definition file
