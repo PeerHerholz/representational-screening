@@ -19,6 +19,34 @@ set -e
 # whatever version happens to be current.
 NEURODOCKER_VERSION=2.1.2
 
+# uv is pinned to one release. The installer this replaces tracked
+# whichever release was current, so two builds of the same checkout
+# could resolve differently.
+UV_TARBALL="https://github.com/astral-sh/uv/releases/download/0.10.9/uv-x86_64-unknown-linux-gnu.tar.gz"
+
+# Singularity's %environment is sourced when the image runs, not while
+# it is built, so every build step has to export these itself. Without
+# them uv would put the interpreter under root's home and take a
+# .venv in the project directory as the environment to sync. uv
+# itself lands in /usr/local/bin, already on a Debian image's PATH.
+UV_ENV="export UV_PROJECT_ENVIRONMENT=/opt/repscreen UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_PYTHON=3.11 UV_LINK_MODE=copy"
+
+# Place uv where every user of the image can read it, and keep the
+# interpreter out of root's home so that Apptainer, which runs as the
+# invoking user, can read it too.
+UV_INSTALL="$UV_ENV && curl -fsSL $UV_TARBALL | tar -xz -C /usr/local/bin --strip-components=1 uv-x86_64-unknown-linux-gnu/uv uv-x86_64-unknown-linux-gnu/uvx && chmod a+rx /usr/local/bin/uv /usr/local/bin/uvx && uv python install --no-cache 3.11 && chmod -R a+rX /opt/uv-python"
+
+# Singularity's %files has no ignore mechanism, so the whole working
+# tree arrives, a local .venv included. It names an interpreter that
+# does not exist in the image.
+DROP_HOST_VENV="rm -rf /home/repscreen/.venv"
+
+# --locked installs what uv.lock names and fails if the lock has
+# drifted from pyproject.toml, which is what makes building from a
+# checkout reproducible. --no-dev keeps the development tooling out,
+# as `uv pip install -e .` did.
+UV_SYNC="$UV_ENV && $DROP_HOST_VENV && cd /home/repscreen && uv sync --locked --no-dev --no-cache && chmod -R a+rX /opt/repscreen"
+
 # Function to generate the Dockerfile with neurodocker
 generate_docker() {
   uvx --from "neurodocker==${NEURODOCKER_VERSION}" neurodocker \
@@ -27,11 +55,11 @@ generate_docker() {
              --pkg-manager apt \
              --install git gcc g++ curl build-essential nano \
              --copy . /home/repscreen \
-             --run "curl -LsSf https://astral.sh/uv/install.sh | sh && /root/.local/bin/uv venv /opt/repscreen" \
+             --run "$UV_INSTALL" \
              --env VIRTUAL_ENV="/opt/repscreen" \
-             --env PATH="/opt/repscreen/bin:/root/.local/bin:\$PATH" \
+             --env PATH="/opt/repscreen/bin:/usr/local/bin:\$PATH" \
              --env SETUPTOOLS_SCM_PRETEND_VERSION_FOR_REPSCREEN=0.1.0+docker \
-             --run "cd /home/repscreen && uv pip install -e ." \
+             --run "$UV_SYNC" \
              --env IS_DOCKER=1 \
              --user repscreen \
              --user root \
@@ -48,11 +76,11 @@ generate_singularity() {
              --pkg-manager apt \
              --install git gcc g++ curl build-essential nano \
              --copy . /home/repscreen \
-             --run "curl -LsSf https://astral.sh/uv/install.sh | sh && /root/.local/bin/uv venv /opt/repscreen" \
+             --run "$UV_INSTALL" \
              --env VIRTUAL_ENV="/opt/repscreen" \
-             --env PATH="/opt/repscreen/bin:/root/.local/bin:\$PATH" \
+             --env PATH="/opt/repscreen/bin:/usr/local/bin:\$PATH" \
              --env SETUPTOOLS_SCM_PRETEND_VERSION_FOR_REPSCREEN=0.1.0+singularity \
-             --run "cd /home/repscreen && uv pip install -e ." \
+             --run "$UV_SYNC" \
              --env IS_SINGULARITY=1 \
              --user repscreen \
              --user root \

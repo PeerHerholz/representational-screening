@@ -11,7 +11,7 @@ export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 export ND_ENTRYPOINT="/neurodocker/startup.sh"
 export VIRTUAL_ENV="/opt/repscreen"
-export PATH="/opt/repscreen/bin:/root/.local/bin:$PATH"
+export PATH="/opt/repscreen/bin:/usr/local/bin:$PATH"
 export SETUPTOOLS_SCM_PRETEND_VERSION_FOR_REPSCREEN="0.1.0+singularity"
 export IS_SINGULARITY="1"
 
@@ -49,9 +49,9 @@ apt-get install -y -q --no-install-recommends \
     nano
 rm -rf /var/lib/apt/lists/*
 
-curl -LsSf https://astral.sh/uv/install.sh | sh && /root/.local/bin/uv venv /opt/repscreen
+export UV_PROJECT_ENVIRONMENT=/opt/repscreen UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_PYTHON=3.11 UV_LINK_MODE=copy && curl -fsSL https://github.com/astral-sh/uv/releases/download/0.10.9/uv-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C /usr/local/bin --strip-components=1 uv-x86_64-unknown-linux-gnu/uv uv-x86_64-unknown-linux-gnu/uvx && chmod a+rx /usr/local/bin/uv /usr/local/bin/uvx && uv python install --no-cache 3.11 && chmod -R a+rX /opt/uv-python
 
-cd /home/repscreen && uv pip install -e .
+export UV_PROJECT_ENVIRONMENT=/opt/repscreen UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_PYTHON=3.11 UV_LINK_MODE=copy && rm -rf /home/repscreen/.venv && cd /home/repscreen && uv sync --locked --no-dev --no-cache && chmod -R a+rX /opt/repscreen
 
 test "$(getent passwd repscreen)" \
 || useradd --no-user-group --create-home --shell /bin/bash repscreen
@@ -128,7 +128,7 @@ printf '{ \
     { \
       "name": "run", \
       "kwds": { \
-        "command": "curl -LsSf https://astral.sh/uv/install.sh | sh && /root/.local/bin/uv venv /opt/repscreen" \
+        "command": "export UV_PROJECT_ENVIRONMENT=/opt/repscreen UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_PYTHON=3.11 UV_LINK_MODE=copy && curl -fsSL https://github.com/astral-sh/uv/releases/download/0.10.9/uv-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C /usr/local/bin --strip-components=1 uv-x86_64-unknown-linux-gnu/uv uv-x86_64-unknown-linux-gnu/uvx && chmod a+rx /usr/local/bin/uv /usr/local/bin/uvx && uv python install --no-cache 3.11 && chmod -R a+rX /opt/uv-python" \
       } \
     }, \
     { \
@@ -140,7 +140,7 @@ printf '{ \
     { \
       "name": "env", \
       "kwds": { \
-        "PATH": "/opt/repscreen/bin:/root/.local/bin:$PATH" \
+        "PATH": "/opt/repscreen/bin:/usr/local/bin:$PATH" \
       } \
     }, \
     { \
@@ -152,7 +152,7 @@ printf '{ \
     { \
       "name": "run", \
       "kwds": { \
-        "command": "cd /home/repscreen && uv pip install -e ." \
+        "command": "export UV_PROJECT_ENVIRONMENT=/opt/repscreen UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_PYTHON=3.11 UV_LINK_MODE=copy && rm -rf /home/repscreen/.venv && cd /home/repscreen && uv sync --locked --no-dev --no-cache && chmod -R a+rX /opt/repscreen" \
       } \
     }, \
     { \
@@ -195,7 +195,8 @@ printf '{ \
       "name": "entrypoint", \
       "kwds": { \
         "args": [ \
-          "/neurodocker/startup.sh" \
+          "/neurodocker/startup.sh", \
+          "\\"$@\\"" \
         ] \
       } \
     } \

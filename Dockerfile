@@ -37,11 +37,11 @@ RUN apt-get update -qq \
            && rm -rf /var/lib/apt/lists/*
 COPY [".", \
       "/home/repscreen"]
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh && /root/.local/bin/uv venv /opt/repscreen
+RUN export UV_PROJECT_ENVIRONMENT=/opt/repscreen UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_PYTHON=3.11 UV_LINK_MODE=copy && curl -fsSL https://github.com/astral-sh/uv/releases/download/0.10.9/uv-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C /usr/local/bin --strip-components=1 uv-x86_64-unknown-linux-gnu/uv uv-x86_64-unknown-linux-gnu/uvx && chmod a+rx /usr/local/bin/uv /usr/local/bin/uvx && uv python install --no-cache 3.11 && chmod -R a+rX /opt/uv-python
 ENV VIRTUAL_ENV="/opt/repscreen"
-ENV PATH="/opt/repscreen/bin:/root/.local/bin:$PATH"
+ENV PATH="/opt/repscreen/bin:/usr/local/bin:$PATH"
 ENV SETUPTOOLS_SCM_PRETEND_VERSION_FOR_REPSCREEN="0.1.0+docker"
-RUN cd /home/repscreen && uv pip install -e .
+RUN export UV_PROJECT_ENVIRONMENT=/opt/repscreen UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_PYTHON=3.11 UV_LINK_MODE=copy && rm -rf /home/repscreen/.venv && cd /home/repscreen && uv sync --locked --no-dev --no-cache && chmod -R a+rX /opt/repscreen
 ENV IS_DOCKER="1"
 RUN test "$(getent passwd repscreen)" \
     || useradd --no-user-group --create-home --shell /bin/bash repscreen
@@ -113,7 +113,7 @@ RUN printf '{ \
     { \
       "name": "run", \
       "kwds": { \
-        "command": "curl -LsSf https://astral.sh/uv/install.sh | sh && /root/.local/bin/uv venv /opt/repscreen" \
+        "command": "export UV_PROJECT_ENVIRONMENT=/opt/repscreen UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_PYTHON=3.11 UV_LINK_MODE=copy && curl -fsSL https://github.com/astral-sh/uv/releases/download/0.10.9/uv-x86_64-unknown-linux-gnu.tar.gz | tar -xz -C /usr/local/bin --strip-components=1 uv-x86_64-unknown-linux-gnu/uv uv-x86_64-unknown-linux-gnu/uvx && chmod a+rx /usr/local/bin/uv /usr/local/bin/uvx && uv python install --no-cache 3.11 && chmod -R a+rX /opt/uv-python" \
       } \
     }, \
     { \
@@ -125,7 +125,7 @@ RUN printf '{ \
     { \
       "name": "env", \
       "kwds": { \
-        "PATH": "/opt/repscreen/bin:/root/.local/bin:$PATH" \
+        "PATH": "/opt/repscreen/bin:/usr/local/bin:$PATH" \
       } \
     }, \
     { \
@@ -137,7 +137,7 @@ RUN printf '{ \
     { \
       "name": "run", \
       "kwds": { \
-        "command": "cd /home/repscreen && uv pip install -e ." \
+        "command": "export UV_PROJECT_ENVIRONMENT=/opt/repscreen UV_PYTHON_INSTALL_DIR=/opt/uv-python UV_PYTHON=3.11 UV_LINK_MODE=copy && rm -rf /home/repscreen/.venv && cd /home/repscreen && uv sync --locked --no-dev --no-cache && chmod -R a+rX /opt/repscreen" \
       } \
     }, \
     { \
