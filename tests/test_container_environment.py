@@ -12,6 +12,7 @@ command discarded.
 """
 
 import pathlib
+import re
 
 import pytest
 
@@ -67,3 +68,82 @@ def test_no_workflow_publishes_an_image():
     )
 
     assert not publishing, f"these push an image: {publishing}"
+
+
+# Ported from dnndatasets, where each of these pinned a defect that
+# cost a failed build. They matter more here than there: nothing is
+# published, so a user builds, and a generator that resolves fresh
+# dependencies or fetches whichever uv is current makes "building from
+# a checkout pins the version" untrue.
+
+_UV_PIN = re.compile(r"astral-sh/uv/releases/download/(\d+\.\d+\.\d+)/")
+
+
+@pytest.fixture(scope="module")
+def generator():
+    path = _ROOT / "generate_images.sh"
+    if not path.is_file():
+        pytest.skip("generate_images.sh is not in this checkout")
+    return path.read_text()
+
+
+@pytest.fixture(scope="module")
+def definitions():
+    present = {
+        path.name: path.read_text()
+        for path in sorted(
+            [
+                p
+                for p in (
+                    *_ROOT.glob("Dockerfile"),
+                    *_ROOT.glob("Singularity*.def"),
+                )
+            ]
+        )
+    }
+    if not present:
+        pytest.skip("no container definition is in this checkout")
+    return present
+
+
+def test_the_generator_installs_the_locked_environment(generator):
+    assert "uv sync --locked" in generator, (
+        "generate_images.sh must install the environment with "
+        "`uv sync --locked`, so the image gets what uv.lock names "
+        "rather than whatever resolves on the day it is built"
+    )
+
+
+def test_every_definition_installs_the_locked_environment(definitions):
+    missing = sorted(
+        name
+        for name, text in definitions.items()
+        if "uv sync --locked" not in text
+    )
+
+    assert not missing, (
+        f"{missing} do not install from the lock file; regenerate them "
+        f"from generate_images.sh"
+    )
+
+
+def test_the_generator_pins_the_uv_version(generator):
+    assert _UV_PIN.search(generator), (
+        "generate_images.sh must fetch a pinned uv release, not "
+        "whichever one is current when the image happens to be built"
+    )
+
+
+def test_every_definition_pins_the_same_uv_version(definitions, generator):
+    wanted = _UV_PIN.search(generator)
+    if wanted is None:
+        pytest.skip("the generator pins no uv version to compare against")
+
+    wrong = {
+        name: [found.group(1) for found in _UV_PIN.finditer(text)]
+        for name, text in definitions.items()
+        if [found.group(1) for found in _UV_PIN.finditer(text)]
+        != [wanted.group(1)] * len(_UV_PIN.findall(text))
+    }
+
+    assert not wrong, f"these pin a uv version the generator does not: {wrong}"
